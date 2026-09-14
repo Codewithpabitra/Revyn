@@ -1,20 +1,17 @@
 import "dotenv/config";
+import { readFileSync } from "node:fs";
 
-function required(key: string): string {
-  const value = process.env[key];
-  if (!value) {
-    throw new Error(`Missing required env var: ${key}`);
-  }
-  return value;
+function loadPrivateKey(path: string): string {
+  return readFileSync(path, "utf-8");
 }
 
 export const config = {
   port: Number(process.env.PORT ?? 4000),
   github: {
-    // These will throw at startup if missing — better to fail fast
-    // than to silently accept unverifiable webhooks later.
     appId: process.env.GITHUB_APP_ID ?? "",
-    privateKey: process.env.GITHUB_APP_PRIVATE_KEY ?? "",
+    privateKey: process.env.GITHUB_APP_PRIVATE_KEY_PATH
+      ? loadPrivateKey(process.env.GITHUB_APP_PRIVATE_KEY_PATH)
+      : "",
     webhookSecret: process.env.GITHUB_WEBHOOK_SECRET ?? "",
   },
 };
