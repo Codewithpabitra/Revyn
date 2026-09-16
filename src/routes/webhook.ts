@@ -3,15 +3,22 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { config } from "../config.js";
 import { getInstallationOctokit } from "../github/client.js";
 
+import { reviewFileDiff } from "../ai/groq.js";
+
 interface WebhookRequest extends FastifyRequest {
   rawBody?: string;
 }
 
-function verifySignature(rawBody: string, signature: string | undefined): boolean {
+function verifySignature(
+  rawBody: string,
+  signature: string | undefined,
+): boolean {
   if (!signature) return false;
   const expected =
     "sha256=" +
-    createHmac("sha256", config.github.webhookSecret).update(rawBody).digest("hex");
+    createHmac("sha256", config.github.webhookSecret)
+      .update(rawBody)
+      .digest("hex");
   const expectedBuf = Buffer.from(expected);
   const actualBuf = Buffer.from(signature);
   if (expectedBuf.length !== actualBuf.length) return false;
@@ -20,7 +27,9 @@ function verifySignature(rawBody: string, signature: string | undefined): boolea
 
 export async function webhookRoutes(app: FastifyInstance) {
   app.post("/webhook", async (request: WebhookRequest, reply) => {
-    const signature = request.headers["x-hub-signature-256"] as string | undefined;
+    const signature = request.headers["x-hub-signature-256"] as
+      | string
+      | undefined;
     const rawBody = request.rawBody ?? "";
 
     if (!verifySignature(rawBody, signature)) {
@@ -31,9 +40,15 @@ export async function webhookRoutes(app: FastifyInstance) {
     const event = request.headers["x-github-event"];
     const payload = request.body as any;
 
-    app.log.info({ event, action: payload?.action }, "Verified webhook received");
+    app.log.info(
+      { event, action: payload?.action },
+      "Verified webhook received",
+    );
 
-    if (event === "pull_request" && ["opened", "synchronize", "reopened"].includes(payload?.action)) {
+    if (
+      event === "pull_request" &&
+      ["opened", "synchronize", "reopened"].includes(payload?.action)
+    ) {
       const { number, pull_request, repository, installation } = payload;
 
       // Reply to GitHub immediately — don't make GitHub wait on our diff fetch + AI call.
@@ -50,20 +65,36 @@ export async function webhookRoutes(app: FastifyInstance) {
 
       app.log.info(
         { prNumber: number, fileCount: files.length },
-        "Fetched changed files"
+        "Fetched changed files",
       );
 
+      const reviews: Array<{
+        filename: string;
+        result: Awaited<ReturnType<typeof reviewFileDiff>>;
+      }> = [];
+
       for (const file of files) {
-        app.log.info(
-          {
+        if (!file.patch) {
+          app.log.info(
+            { filename: file.filename },
+            "Skipping file with no patch (binary or too large)",
+          );
+          continue;
+        }
+
+        try {
+          const result = await reviewFileDiff({
             filename: file.filename,
-            status: file.status,
-            additions: file.additions,
-            deletions: file.deletions,
-            patchPreview: file.patch?.slice(0, 200),
-          },
-          "File change"
-        );
+            patch: file.patch,
+          });
+          reviews.push({ filename: file.filename, result });
+          app.log.info(
+            { filename: file.filename, result },
+            "AI review complete",
+          );
+        } catch (err) {
+          app.log.error({ filename: file.filename, err }, "AI review failed");
+        }
       }
 
       return;

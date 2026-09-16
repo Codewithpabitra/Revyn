@@ -14,4 +14,7 @@ export const config = {
       : "",
     webhookSecret: process.env.GITHUB_WEBHOOK_SECRET ?? "",
   },
+  groq: {
+    apiKey: process.env.GROQ_API_KEY ?? "",
+  },
 };
