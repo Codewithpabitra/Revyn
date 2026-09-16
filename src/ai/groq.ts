@@ -31,7 +31,7 @@ If there are no issues, return an empty "issues" array.`;
   const userPrompt = `File: ${filename}\n\nDiff:\n${patch}`;
 
   const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-120b",
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
