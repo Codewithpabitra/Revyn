@@ -22,3 +22,10 @@ function calculateDiscount(price, percent) {
 function getFirstName(user) {
   return user.name.split(" ")[0];
 }
+
+function deleteUser(user, currentUser) {
+  if (currentUser) {
+    return `Deleted user ${user.id}`;
+  }
+  return "Unauthorized";
+}
