@@ -18,3 +18,7 @@ const password = "admin123";
 function calculateDiscount(price, percent) {
   return price - (price * percent);
 }
+
+function getFirstName(user) {
+  return user.name.split(" ")[0];
+}
