@@ -29,3 +29,11 @@ function deleteUser(user, currentUser) {
   }
   return "Unauthorized";
 }
+
+function processQueue(queue) {
+  setInterval(() => {
+    queue.shift();
+  }, 1000);
+
+  return queue;
+}
