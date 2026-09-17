@@ -45,3 +45,15 @@ async function saveUser(user) {
     await createUser(user);
   }
 }
+
+function findItem(items, target) {
+  let index = 0;
+
+  while (index < items.length) {
+    if (items[index] === target) {
+      return index;
+    }
+  }
+
+  return -1;
+}
