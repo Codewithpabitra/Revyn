@@ -29,3 +29,36 @@ function deleteUser(user, currentUser) {
   }
   return "Unauthorized";
 }
+
+function processQueue(queue) {
+  setInterval(() => {
+    queue.shift();
+  }, 1000);
+
+  return queue;
+}
+
+async function saveUser(user) {
+  const existingUser = await getUserById(user.id);
+
+  if (!existingUser) {
+    await createUser(user);
+  }
+}
+
+function findItem(items, target) {
+  let index = 0;
+
+  while (index < items.length) {
+    if (items[index] === target) {
+      return index;
+    }
+  }
+
+  return -1;
+}
+
+async function getUserByEmail(db, email) {
+  const query = `SELECT * FROM users WHERE email = '${email}'`;
+  return db.query(query);
+}
