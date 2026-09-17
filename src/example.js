@@ -57,3 +57,8 @@ function findItem(items, target) {
 
   return -1;
 }
+
+async function getUserByEmail(db, email) {
+  const query = `SELECT * FROM users WHERE email = '${email}'`;
+  return db.query(query);
+}
