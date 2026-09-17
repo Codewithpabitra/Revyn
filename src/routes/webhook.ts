@@ -50,13 +50,21 @@ export async function webhookRoutes(app: FastifyInstance) {
     ) {
       const { number, pull_request, repository, installation } = payload;
 
-      await reviewQueue.add("review-pr", {
-        installationId: installation.id,
-        owner: repository.owner.login,
-        repo: repository.name,
-        pullNumber: number,
-        headSha: pull_request.head.sha,
-      });
+      await reviewQueue.add(
+        "review-pr",
+        {
+          installationId: installation.id,
+          owner: repository.owner.login,
+          repo: repository.name,
+          pullNumber: number,
+          headSha: pull_request.head.sha,
+        },
+        {
+          jobId: `pr-${repository.full_name}-${number}`, // same PR = same job slot
+          removeOnComplete: true,
+          removeOnFail: 50, // keep last 50 failures for debugging, discard older
+        },
+      );
 
       app.log.info({ prNumber: number }, "Enqueued PR for review");
       return reply.send({ received: true });
