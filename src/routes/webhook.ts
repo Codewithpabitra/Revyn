@@ -4,6 +4,7 @@ import { config } from "../config.js";
 import { getInstallationOctokit } from "../github/client.js";
 
 import { reviewFileDiff } from "../ai/groq.js";
+import { postReviewToGitHub } from "../github/review.js";
 
 interface WebhookRequest extends FastifyRequest {
   rawBody?: string;
@@ -94,6 +95,22 @@ export async function webhookRoutes(app: FastifyInstance) {
           );
         } catch (err) {
           app.log.error({ filename: file.filename, err }, "AI review failed");
+        }
+      }
+
+      if (reviews.length > 0) {
+        try {
+          await postReviewToGitHub({
+            octokit,
+            owner: repository.owner.login,
+            repo: repository.name,
+            pullNumber: number,
+            commitId: pull_request.head.sha,
+            reviews,
+          });
+          app.log.info({ prNumber: number }, "Posted review to GitHub");
+        } catch (err) {
+          app.log.error({ err }, "Failed to post review to GitHub");
         }
       }
 
