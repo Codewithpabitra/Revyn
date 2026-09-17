@@ -37,3 +37,11 @@ function processQueue(queue) {
 
   return queue;
 }
+
+async function saveUser(user) {
+  const existingUser = await getUserById(user.id);
+
+  if (!existingUser) {
+    await createUser(user);
+  }
+}
