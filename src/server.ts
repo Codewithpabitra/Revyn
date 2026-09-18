@@ -1,8 +1,16 @@
 import Fastify from "fastify";
 import { config } from "./config.js";
+import cors from "@fastify/cors";
 import { webhookRoutes } from "./routes/webhook.js";
 
+import { installationRoutes } from "./routes/installations.js";
+import { reviewRoutes } from "./routes/reviews.js";
+
 const app = Fastify({ logger: true });
+
+await app.register(cors, {
+  origin: ["http://localhost:3000"], // your dashboard's origin; add prod URL later
+});
 
 // Capture raw body ONLY for the webhook route's content type,
 // so signature verification has the untouched payload to hash.
@@ -25,6 +33,9 @@ app.addContentTypeParser(
 app.get("/health", async () => ({ status: "ok" }));
 
 app.register(webhookRoutes);
+app.register(installationRoutes);
+app.register(reviewRoutes);
+
 
 app.listen({ port: config.port }, (err, address) => {
   if (err) {
