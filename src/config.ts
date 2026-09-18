@@ -9,9 +9,7 @@ export const config = {
   port: Number(process.env.PORT ?? 4000),
   github: {
     appId: process.env.GITHUB_APP_ID ?? "",
-    privateKey: process.env.GITHUB_APP_PRIVATE_KEY_PATH
-      ? loadPrivateKey(process.env.GITHUB_APP_PRIVATE_KEY_PATH)
-      : "",
+    privateKey: process.env.GITHUB_APP_PRIVATE_KEY?.replace(/\\n/g, "\n") ?? "",
     webhookSecret: process.env.GITHUB_WEBHOOK_SECRET ?? "",
   },
   groq: {

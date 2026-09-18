@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "worker": "tsx watch src/queue/reviewWorker.ts"
+    "worker": "tsx watch src/queue/reviewWorker.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "start:worker": "node dist/queue/reviewWorker.js"
   },
   "keywords": [],
   "type": "module",
