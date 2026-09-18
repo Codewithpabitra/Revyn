@@ -8,7 +8,8 @@
     "worker": "tsx watch src/queue/reviewWorker.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "start:worker": "node dist/queue/reviewWorker.js"
+    "start:worker": "node dist/queue/reviewWorker.js",
+    "start:all": "node dist/index.js"
   },
   "keywords": [],
   "type": "module",
